@@ -1,8 +1,21 @@
 # Bài 3: React Router trong ReactJS
 
-[← Quay về roadmap](./README.md)
+[Quay về roadmap](./README.md)
 
-Bài học tổng hợp nội dung trong tài liệu `React Router.pdf`: thiết lập router, điều hướng, route động, route lồng nhau, route bảo vệ, trang 404, query params và Data Router. Các ví dụ được bổ sung để thực hành trong project ở [bài 1](./lesson1.md), kết hợp kiến thức state và props ở [bài 2](./lesson2.md).
+Bài này hướng dẫn bạn xây dựng ứng dụng có nhiều màn hình bằng React Router. Bạn sẽ bắt đầu với hai trang đơn giản, tìm hiểu các kiểu route, rồi thực hành ứng dụng có đăng nhập mô phỏng. Phần tiếp theo chuyển sang Data Router để tải dữ liệu và hiển thị trạng thái tải hoặc lỗi.
+
+### Kiến thức cần có và chuẩn bị
+
+Bạn cần biết component, JSX, props và state trong hai bài đầu. Mở project Vite và xác định `src/App.jsx` là file dùng cho các ví dụ. **Route** là quy tắc ghép một đường dẫn với giao diện; **router** quản lý các quy tắc này và việc điều hướng.
+
+Giữ `src/main.jsx` render `<App />`. Mọi router trong bài được khai báo trong `App.jsx`, vì vậy không bọc thêm router ở `main.jsx`. Khi thử URL, giữ nguyên phần địa chỉ Local mà Vite in ra, chỉ thay đường dẫn phía sau; ví dụ từ trang chủ sang `/user/12`.
+
+### Kết quả sau bài học
+
+- Cài và thiết lập React Router v6, điều hướng bằng liên kết hoặc code.
+- Đọc tham số đường dẫn, query và hiển thị route con.
+- Chuyển hướng người chưa đăng nhập và xử lý đường dẫn chưa khai báo.
+- Dùng Data Router để tải dữ liệu trước khi hiển thị trang đích.
 
 ## 1. React Router DOM là gì?
 
@@ -10,19 +23,19 @@ Bài học tổng hợp nội dung trong tài liệu `React Router.pdf`: thiết
 
 Ví dụ:
 
-| URL | Giao diện |
-| --- | --- |
-| `/` | Trang chủ. |
-| `/about` | Giới thiệu. |
-| `/user/12` | Thông tin người dùng có ID là `12`. |
-| `/dashboard/profile` | Hồ sơ bên trong dashboard. |
+| URL                        | Giao diện                             |
+| -------------------------- | ------------------------------------- |
+| `/`                        | Trang chủ.                            |
+| `/about`                   | Giới thiệu.                           |
+| `/user/12`                 | Thông tin người dùng có ID là `12`.   |
+| `/dashboard/profile`       | Hồ sơ bên trong dashboard.            |
 | `/products?category=phone` | Danh sách sản phẩm lọc theo danh mục. |
 
 Khi điều hướng nội bộ bằng React Router, ứng dụng có thể thay đổi URL và nội dung hiển thị mà không tải lại toàn bộ tài liệu HTML. Đây là cách triển khai SPA đã giới thiệu trong bài 1.
 
 ## 2. Cài đặt và thiết lập router
 
-### Cài thư viện
+### Bước 1 Cài thư viện
 
 Mở terminal trong thư mục project React và chạy:
 
@@ -31,14 +44,14 @@ npm install react-router-dom@6
 npm run dev
 ```
 
-PDF dùng cú pháp `Routes`, `element` và Data Router có từ v6.4. Bài học cố định **nhánh v6** để các ví dụ thống nhất; lệnh trên cài phiên bản thuộc nhánh này. Không dùng cú pháp v5 như `Switch` hoặc `component={Home}` cho các ví dụ dưới đây.
+Bài học dùng **React Router v6**; Data Router có từ v6.4. Lệnh trên cài phiên bản thuộc nhánh v6 để thống nhất các ví dụ. Không dùng cú pháp v5 như `Switch` hoặc `component={Home}` cho các ví dụ dưới đây.
 
-### Ví dụ cơ bản
+### Bước 2 Tạo hai trang và khai báo route
 
 Thay toàn bộ nội dung `src/App.jsx` bằng:
 
 ```jsx
-import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 
 function Home() {
   return <h1>Trang chủ</h1>;
@@ -52,7 +65,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <nav>
-        <Link to="/">Trang chủ</Link>{' | '}
+        <Link to="/">Trang chủ</Link>
+        {" | "}
         <Link to="/about">Giới thiệu</Link>
       </nav>
       <Routes>
@@ -64,15 +78,21 @@ export default function App() {
 }
 ```
 
-| Thành phần | Vai trò |
-| --- | --- |
+| Thành phần      | Vai trò                                                                |
+| --------------- | ---------------------------------------------------------------------- |
 | `BrowserRouter` | Cung cấp ngữ cảnh routing, đồng bộ điều hướng với lịch sử trình duyệt. |
-| `Routes` | Chọn nhánh route phù hợp với URL hiện tại. |
-| `Route` | Khai báo đường dẫn và giao diện tương ứng. |
-| `path` | Mẫu đường dẫn cần khớp. |
-| `element` | Phần tử React hiển thị khi route khớp. |
+| `Routes`        | Chọn nhánh route phù hợp với URL hiện tại.                             |
+| `Route`         | Khai báo đường dẫn và giao diện tương ứng.                             |
+| `path`          | Mẫu đường dẫn cần khớp.                                                |
+| `element`       | Phần tử React hiển thị khi route khớp.                                 |
 
 Trong bài này, router nằm trong `App.jsx`. Giữ `src/main.jsx` render `<App />` như template Vite; không bọc thêm `BrowserRouter` ở đó. Mỗi ứng dụng chỉ dùng một router gốc.
+
+### Bước 3 Kiểm tra điều hướng
+
+Lưu file, mở địa chỉ Local rồi nhấn Giới thiệu. URL chuyển sang `/about`, nội dung đổi thành Giới thiệu và menu vẫn hiển thị. Nhấn nút Back của trình duyệt để quay về trang chủ.
+
+`nav` nằm ngoài `Routes` nên được giữ trên cả hai trang; phần trong `Routes` thay đổi theo URL. Các đoạn ở phần 3 đến 7 dưới đây là **minh họa từng API**, chưa phải ứng dụng độc lập. Bạn có thể đọc trước rồi chạy bản hoàn chỉnh ở phần 8 mà không phải tự ghép code.
 
 ## 3. Điều hướng bằng Link và useNavigate
 
@@ -91,16 +111,12 @@ Với menu nội bộ, ưu tiên `Link` để React Router xử lý chuyển tra
 `useNavigate` trả về hàm điều hướng bằng code, phù hợp khi chuyển trang sau một thao tác:
 
 ```jsx
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 function GoToAbout() {
   const navigate = useNavigate();
 
-  return (
-    <button onClick={() => navigate('/about')}>
-      Xem giới thiệu
-    </button>
-  );
+  return <button onClick={() => navigate("/about")}>Xem giới thiệu</button>;
 }
 ```
 
@@ -119,7 +135,7 @@ function GoToAbout() {
 Component đọc tham số bằng `useParams`:
 
 ```jsx
-import { useParams } from 'react-router-dom';
+import { useParams } from "react-router-dom";
 
 function User() {
   const { id } = useParams();
@@ -142,10 +158,10 @@ Với URL `/user/12`, `id` là chuỗi `'12'`. Nếu cần tính toán bằng s�
 </Route>
 ```
 
-| Route con | URL |
-| --- | --- |
-| `index` | `/dashboard` |
-| `profile` | `/dashboard/profile` |
+| Route con  | URL                   |
+| ---------- | --------------------- |
+| `index`    | `/dashboard`          |
+| `profile`  | `/dashboard/profile`  |
 | `settings` | `/dashboard/settings` |
 
 Đường dẫn con tương đối được ghép với đường dẫn cha. Route `index` là nội dung mặc định khi URL khớp chính route cha.
@@ -153,14 +169,15 @@ Với URL `/user/12`, `id` là chuỗi `'12'`. Nếu cần tính toán bằng s�
 Cha cần đặt **`Outlet`** ở vị trí muốn hiển thị route con:
 
 ```jsx
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet } from "react-router-dom";
 
 function Dashboard() {
   return (
     <section>
       <h1>Dashboard</h1>
       <nav>
-        <Link to="profile">Hồ sơ</Link>{' | '}
+        <Link to="profile">Hồ sơ</Link>
+        {" | "}
         <Link to="settings">Cài đặt</Link>
       </nav>
       <Outlet />
@@ -176,7 +193,7 @@ Trong ví dụ, các `Link` được render tại route cha `/dashboard`, nên `
 **Protected route** kiểm tra điều kiện trước khi hiển thị trang, chẳng hạn trạng thái đăng nhập:
 
 ```jsx
-import { Navigate } from 'react-router-dom';
+import { Navigate } from "react-router-dom";
 
 function ProtectedRoute({ isAuthenticated, children }) {
   if (!isAuthenticated) {
@@ -221,18 +238,18 @@ Dùng `*` để xử lý các đường dẫn chưa được khai báo:
 Query params nằm sau dấu `?`, ví dụ `/products?category=phone`. Dùng `useSearchParams` để đọc và cập nhật:
 
 ```jsx
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from "react-router-dom";
 
 function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const category = searchParams.get('category') ?? 'all';
+  const category = searchParams.get("category") ?? "all";
 
   function changeCategory(value) {
     const nextParams = new URLSearchParams(searchParams);
-    if (value === 'all') {
-      nextParams.delete('category');
+    if (value === "all") {
+      nextParams.delete("category");
     } else {
-      nextParams.set('category', value);
+      nextParams.set("category", value);
     }
     setSearchParams(nextParams);
   }
@@ -242,7 +259,10 @@ function Products() {
       <h1>Sản phẩm</h1>
       <label>
         Danh mục
-        <select value={category} onChange={e => changeCategory(e.target.value)}>
+        <select
+          value={category}
+          onChange={(e) => changeCategory(e.target.value)}
+        >
           <option value="all">Tất cả</option>
           <option value="phone">Điện thoại</option>
           <option value="laptop">Máy tính</option>
@@ -256,22 +276,28 @@ function Products() {
 
 Ví dụ này minh họa bộ chọn và URL; chưa có dữ liệu sản phẩm để lọc. Sao chép `searchParams` giúp giữ các query khác khi đổi danh mục; gọi setter mới thực hiện điều hướng tới query mới.
 
-| Loại tham số | Ví dụ | Cách đọc |
-| --- | --- | --- |
-| Path param | `/user/12` | `useParams()` lấy `id`. |
-| Query param | `/products?category=phone` | `useSearchParams()` lấy `category`. |
+| Loại tham số | Ví dụ                      | Cách đọc                            |
+| ------------ | -------------------------- | ----------------------------------- |
+| Path param   | `/user/12`                 | `useParams()` lấy `id`.             |
+| Query param  | `/products?category=phone` | `useSearchParams()` lấy `category`. |
 
 ### useLocation
 
 `useLocation` lấy đối tượng vị trí hiện tại của router:
 
 ```jsx
-import { useLocation } from 'react-router-dom';
+import { useLocation } from "react-router-dom";
 
 function CurrentLocation() {
   const location = useLocation();
 
-  return <p>Vị trí: {location.pathname}{location.search}{location.hash}</p>;
+  return (
+    <p>
+      Vị trí: {location.pathname}
+      {location.search}
+      {location.hash}
+    </p>
+  );
 }
 ```
 
@@ -279,12 +305,12 @@ Với `/products?category=phone#list`, `pathname` là `/products`, `search` là 
 
 ## 8. Thực hành routing cơ bản
 
-### Ghép các phần đã học
+### Bước 1 Chạy ứng dụng hoàn chỉnh
 
-Trong `src/App.jsx`, giữ các component `User`, `Dashboard`, `ProtectedRoute`, `Products` và `CurrentLocation` ở phần trên. Thay các import rời bằng một import chung:
+Thay toàn bộ `src/App.jsx` bằng code dưới đây. Ví dụ đã có đủ import, component và cấu hình route; không cần chép thêm các đoạn ở phần trước.
 
 ```jsx
-import { useState } from 'react';
+import { useState } from "react";
 import {
   BrowserRouter,
   Link,
@@ -296,12 +322,81 @@ import {
   useNavigate,
   useParams,
   useSearchParams,
-} from 'react-router-dom';
-```
+} from "react-router-dom";
 
-Thêm các component dưới đây và dùng `App` này thay cho `App` ở phần 2:
+function User() {
+  const { id } = useParams();
 
-```jsx
+  return <h1>Người dùng có ID là {id}</h1>;
+}
+
+function Dashboard() {
+  return (
+    <section>
+      <h1>Dashboard</h1>
+      <nav>
+        <Link to="profile">Hồ sơ</Link>
+        {" | "}
+        <Link to="settings">Cài đặt</Link>
+      </nav>
+      <Outlet />
+    </section>
+  );
+}
+
+function ProtectedRoute({ isAuthenticated, children }) {
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+function Products() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const category = searchParams.get("category") ?? "all";
+
+  function changeCategory(value) {
+    const nextParams = new URLSearchParams(searchParams);
+    if (value === "all") {
+      nextParams.delete("category");
+    } else {
+      nextParams.set("category", value);
+    }
+    setSearchParams(nextParams);
+  }
+
+  return (
+    <section>
+      <h1>Sản phẩm</h1>
+      <label>
+        Danh mục
+        <select
+          value={category}
+          onChange={(e) => changeCategory(e.target.value)}
+        >
+          <option value="all">Tất cả</option>
+          <option value="phone">Điện thoại</option>
+          <option value="laptop">Máy tính</option>
+        </select>
+      </label>
+      <p>Danh mục đang chọn: {category}</p>
+    </section>
+  );
+}
+
+function CurrentLocation() {
+  const location = useLocation();
+
+  return (
+    <p>
+      Vị trí: {location.pathname}
+      {location.search}
+      {location.hash}
+    </p>
+  );
+}
+
 function Home() {
   return <h1>Trang chủ</h1>;
 }
@@ -327,7 +422,7 @@ function Login({ onLogin }) {
 
   function handleLogin() {
     onLogin();
-    navigate('/dashboard', { replace: true });
+    navigate("/dashboard", { replace: true });
   }
 
   return <button onClick={handleLogin}>Đăng nhập thử</button>;
@@ -339,9 +434,12 @@ export default function App() {
   return (
     <BrowserRouter>
       <nav>
-        <Link to="/">Trang chủ</Link>{' | '}
-        <Link to="/user/12">Người dùng 12</Link>{' | '}
-        <Link to="/products?category=phone">Sản phẩm</Link>{' | '}
+        <Link to="/">Trang chủ</Link>
+        {" | "}
+        <Link to="/user/12">Người dùng 12</Link>
+        {" | "}
+        <Link to="/products?category=phone">Sản phẩm</Link>
+        {" | "}
         <Link to="/dashboard">Dashboard</Link>
       </nav>
       {isAuthenticated && (
@@ -377,7 +475,13 @@ export default function App() {
 
 Nút đăng nhập chỉ mô phỏng bằng state, không gửi thông tin đăng nhập tới server. Tải lại trang sẽ đưa trạng thái về chưa đăng nhập.
 
-### Kiểm tra kết quả
+### Bước 2 Hiểu luồng đăng nhập và route con
+
+`App` giữ state đăng nhập và truyền nó qua props cho `ProtectedRoute`. Khi state là `false`, route dashboard hiển thị `Navigate` để chuyển sang trang đăng nhập. Nhấn Đăng nhập thử cập nhật state ở cha và chuyển đến dashboard.
+
+Khi đi tới `/dashboard/profile`, router chọn cả dashboard lẫn route con profile. `Dashboard` giữ tiêu đề và menu; `Outlet` được thay bằng nội dung của `Profile`. Đăng xuất đổi state về `false`, khiến route bảo vệ đánh giá lại điều kiện và chuyển hướng.
+
+### Bước 3 Kiểm tra kết quả
 
 1. Mở `/user/12`: giao diện hiển thị ID `12`.
 2. Mở `/products?category=phone`, đổi danh mục và kiểm tra query thay đổi.
@@ -390,14 +494,14 @@ Nút đăng nhập chỉ mô phỏng bằng state, không gửi thông tin đăn
 
 Phần trước khai báo route bằng `BrowserRouter`, `Routes` và `Route`. **Data Router** có từ v6.4 cho phép khai báo route bằng object và gắn thêm `loader`, `errorElement` cùng các tính năng xử lý dữ liệu.
 
-| Cách thiết lập | Thành phần chính | Dùng trong bài |
-| --- | --- | --- |
-| Routing cơ bản | `BrowserRouter`, `Routes`, `Route` | Điều hướng và hiển thị component. |
-| Data Router | `createBrowserRouter`, `RouterProvider` | Điều hướng kết hợp tải dữ liệu và xử lý lỗi. |
+| Cách thiết lập | Thành phần chính                        | Dùng trong bài                               |
+| -------------- | --------------------------------------- | -------------------------------------------- |
+| Routing cơ bản | `BrowserRouter`, `Routes`, `Route`      | Điều hướng và hiển thị component.            |
+| Data Router    | `createBrowserRouter`, `RouterProvider` | Điều hướng kết hợp tải dữ liệu và xử lý lỗi. |
 
 Đây là hai cách thiết lập khác nhau, không phải cứ dùng object là đang dùng một phiên bản thư viện khác. Với ví dụ tiếp theo, **thay toàn bộ `src/App.jsx`**; không bọc `RouterProvider` trong `BrowserRouter` và không giữ router cũ ở `main.jsx`.
 
-### Loader và useLoaderData
+### Bước 1 Chuẩn bị dữ liệu cho loader
 
 `loader` tải dữ liệu cho route trước khi giao diện đích được hiển thị với dữ liệu đó. Component đọc kết quả bằng `useLoaderData`. Khác với việc bắt đầu fetch trong `useEffect` sau khi component đã render, loader gắn việc tải dữ liệu vào quá trình điều hướng của router.
 
@@ -410,7 +514,9 @@ Tạo file `public/users.json` để có nguồn dữ liệu chạy tại chỗ:
 ]
 ```
 
-Thay nội dung `src/App.jsx` bằng ví dụ đầy đủ sau:
+### Bước 2 Chuyển sang Data Router
+
+Thay toàn bộ nội dung `src/App.jsx` bằng ví dụ đầy đủ sau:
 
 ```jsx
 import {
@@ -422,13 +528,13 @@ import {
   useLoaderData,
   useNavigation,
   useRouteError,
-} from 'react-router-dom';
+} from "react-router-dom";
 
 async function usersLoader({ request }) {
-  const response = await fetch('/users.json', { signal: request.signal });
+  const response = await fetch("/users.json", { signal: request.signal });
 
   if (!response.ok) {
-    throw new Response('Không tải được danh sách người dùng.', {
+    throw new Response("Không tải được danh sách người dùng.", {
       status: response.status,
     });
   }
@@ -438,12 +544,13 @@ async function usersLoader({ request }) {
 
 function Layout() {
   const navigation = useNavigation();
-  const isLoading = navigation.state === 'loading';
+  const isLoading = navigation.state === "loading";
 
   return (
     <main>
       <nav>
-        <Link to="/">Trang chủ</Link>{' | '}
+        <Link to="/">Trang chủ</Link>
+        {" | "}
         <Link to="/users">Người dùng</Link>
       </nav>
       {isLoading && <p role="status">Đang tải dữ liệu...</p>}
@@ -463,7 +570,9 @@ function Users() {
     <section>
       <h1>Danh sách người dùng</h1>
       <ul>
-        {users.map(user => <li key={user.id}>{user.name}</li>)}
+        {users.map((user) => (
+          <li key={user.id}>{user.name}</li>
+        ))}
       </ul>
     </section>
   );
@@ -473,7 +582,7 @@ function ErrorPage() {
   const error = useRouteError();
   const message = isRouteErrorResponse(error)
     ? `Lỗi ${error.status}: ${error.data}`
-    : 'Đã xảy ra lỗi khi tải hoặc hiển thị dữ liệu.';
+    : "Đã xảy ra lỗi khi tải hoặc hiển thị dữ liệu.";
 
   return (
     <section role="alert">
@@ -490,18 +599,18 @@ function NotFound() {
 
 const router = createBrowserRouter([
   {
-    path: '/',
+    path: "/",
     element: <Layout />,
     errorElement: <ErrorPage />,
     children: [
       { index: true, element: <Home /> },
       {
-        path: 'users',
+        path: "users",
         element: <Users />,
         loader: usersLoader,
         errorElement: <ErrorPage />,
       },
-      { path: '*', element: <NotFound /> },
+      { path: "*", element: <NotFound /> },
     ],
   },
 ]);
@@ -516,6 +625,10 @@ export default function App() {
 }
 ```
 
+### Bước 3 Theo dõi luồng tải dữ liệu
+
+Từ trang chủ, nhấn Người dùng. Router xác định route `/users` và gọi `usersLoader`; hàm này fetch JSON rồi trả về dữ liệu đã đọc. Khi loader thành công, `Users` lấy dữ liệu bằng `useLoaderData` và dùng `map` tạo danh sách. Trong lúc chờ, layout vẫn có thể hiện thông báo tải.
+
 Router được tạo bên ngoài component để không tạo lại mỗi lần `App` render. `/users.json` được phục vụ từ `public/users.json` trong project Vite chạy ở đường dẫn gốc. Có thể thay URL này bằng API thật khi đã có backend.
 
 `request.signal` cho phép yêu cầu fetch bị hủy khi router hủy việc tải tương ứng. Loader đang giả định phản hồi JSON là mảng các object có `id` và `name`; với API thực tế, cần kiểm tra cấu trúc dữ liệu theo hợp đồng API.
@@ -526,10 +639,10 @@ Router được tạo bên ngoài component để không tạo lại mỗi lần
 
 Trong Data Router, `useNavigation` theo dõi tiến trình điều hướng:
 
-| Trạng thái | Ý nghĩa |
-| --- | --- |
-| `idle` | Không có điều hướng đang chờ. |
-| `loading` | Router đang tải dữ liệu cho điều hướng. |
+| Trạng thái   | Ý nghĩa                                                                  |
+| ------------ | ------------------------------------------------------------------------ |
+| `idle`       | Không có điều hướng đang chờ.                                            |
+| `loading`    | Router đang tải dữ liệu cho điều hướng.                                  |
 | `submitting` | Đang gửi dữ liệu qua cơ chế action của router; ví dụ hiện tại chưa dùng. |
 
 Ở ví dụ trên, khi đi từ trang chủ sang `/users`, `Layout` hiển thị thông báo tải trong lúc chờ loader. Lần tải đầu khi mở trực tiếp `/users` dùng `fallbackElement` của `RouterProvider` trong cấu hình v6 này.
@@ -552,10 +665,20 @@ Trang `path="*"` xử lý URL chưa khớp route; `errorElement` xử lý lỗi 
 4. Kiểm tra giao diện lỗi vẫn nằm trong layout và có liên kết về trang chủ. Sau đó khôi phục loader ban đầu.
 5. Mở URL chưa khai báo để kiểm tra trang 404.
 
-## 11. Lưu ý khi thực hành và triển khai
+## 11. Lỗi thường gặp và triển khai
+
+| Hiện tượng | Cách kiểm tra |
+| --- | --- |
+| Hook điều hướng báo không ở trong router | Đặt component gọi Hook bên dưới router; xem lại các ví dụ hoàn chỉnh. |
+| Báo router lồng trong router | Giữ một router gốc; kiểm tra cả `main.jsx` và `App.jsx`. |
+| Chỉ hiện dashboard, không có trang con | Giữ `<Outlet />` trong component cha. |
+| `useNavigation` không hoạt động | Dùng với Data Router ở phần 9, không dùng với ví dụ chỉ có `BrowserRouter`. |
+| Fetch trả HTML hoặc lỗi JSON | Kiểm tra `public/users.json` và thử mở `/users.json` trên cùng địa chỉ Local. |
+| Tải lại trang con gặp 404 trên hosting | Cấu hình fallback của máy chủ như hướng dẫn bên dưới. |
+
 
 - Các Hook và component điều hướng phải nằm trong cây được router phù hợp bao bọc.
-- Các đoạn code minh họa riêng cần được ghép theo hướng dẫn ở phần 8; ví dụ đầy đủ ở phần 9 thay thế ví dụ trước, không dán nối các `App` vào cùng một file.
+- Các đoạn code minh họa ở phần 3 đến 7 được tập hợp trong ví dụ hoàn chỉnh ở phần 8; ví dụ đầy đủ ở phần 9 thay thế ví dụ trước, không dán nối các `App` vào cùng một file.
 - Khi dùng `BrowserRouter` hoặc `createBrowserRouter` trên hosting tĩnh, cấu hình máy chủ trả về `index.html` cho đường dẫn giao diện như `/dashboard/profile`. Nếu không, mở trực tiếp hoặc tải lại đường dẫn đó có thể gặp 404 từ server trước khi React chạy. Các file tĩnh và API cần được phục vụ đúng thay vì chuyển tất cả về HTML.
 - Nếu triển khai ứng dụng dưới đường dẫn con, cần cấu hình đường dẫn gốc của Vite và `basename` của router phù hợp; các ví dụ trong bài chạy ở đường dẫn gốc.
 
@@ -582,11 +705,10 @@ Trang `path="*"` xử lý URL chưa khớp route; `errorElement` xử lý lỗi 
 
 ## Tài liệu tham khảo
 
-- Tài liệu `React Router.pdf` do người học cung cấp, 13 trang: nội dung nền tảng của bài 3.
 - [React Router v6: Tổng quan tính năng](https://reactrouter.com/6.30.1/start/overview).
 - [React Router v6: Loader](https://reactrouter.com/6.30.1/route/loader).
 - [React Router v6: useNavigation](https://reactrouter.com/6.30.1/hooks/use-navigation).
 - [React Router v6: Xử lý lỗi với errorElement](https://reactrouter.com/6.30.1/route/error-element).
 - [React Router v6: useSearchParams](https://reactrouter.com/6.30.1/hooks/use-search-params).
 
-[← Bài 2: Props và State trong ReactJS](./lesson2.md) | [Quay về roadmap →](./README.md)
+[Bài 2: Props và State trong ReactJS](./lesson2.md) | [Bài 4: useEffect và useReducer →](./lesson4.md) | [Quay về roadmap](./README.md)
