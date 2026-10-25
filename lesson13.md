@@ -1,4 +1,4 @@
-# Bài 13: Gọi API với Redux và làm quen RTK Query
+# Bài 13: Gọi API với Redux và làm quen Redux Toolkit Query
 
 [Quay về roadmap](./README.md)
 
@@ -22,11 +22,11 @@ Hai phương án thunk và RTK Query thay thế nhau. Kiểm tra phương án th
 
 Nếu dữ liệu chỉ phục vụ một component, Effect hoặc custom Hook ở bài 8 có thể đủ. Khi nhiều màn hình cần cùng dữ liệu và trạng thái tải, có thể tổ chức request ở lớp dùng chung.
 
-| Loại dữ liệu | Ví dụ | Cách quản lý có thể dùng |
-| --- | --- | --- |
-| State UI cục bộ | Ô tìm kiếm, mở menu | `useState`. |
-| State dùng chung phía client | Giỏ hàng trong phiên | Redux slice hoặc Context phù hợp. |
-| Dữ liệu server | Danh sách sản phẩm từ API | RTK Query; hoặc thunk khi cần tự tổ chức luồng. |
+| Loại dữ liệu                 | Ví dụ                     | Cách quản lý có thể dùng                        |
+| ---------------------------- | ------------------------- | ----------------------------------------------- |
+| State UI cục bộ              | Ô tìm kiếm, mở menu       | `useState`.                                     |
+| State dùng chung phía client | Giỏ hàng trong phiên      | Redux slice hoặc Context phù hợp.               |
+| Dữ liệu server               | Danh sách sản phẩm từ API | RTK Query; hoặc thunk khi cần tự tổ chức luồng. |
 
 Thunk là hàm có thể thực hiện công việc rồi dispatch action. `createAsyncThunk` tạo các action vòng đời cho Promise; nó không tự tạo reducer và không cung cấp sẵn cache như RTK Query.
 
@@ -43,8 +43,11 @@ export const fetchProducts = createAsyncThunk(
   "products/fetchProducts",
   async (_, { signal, rejectWithValue }) => {
     try {
-      const response = await fetch("https://dummyjson.com/products?limit=8", { signal });
-      if (!response.ok) return rejectWithValue(`Máy chủ trả HTTP ${response.status}.`);
+      const response = await fetch("https://dummyjson.com/products?limit=8", {
+        signal,
+      });
+      if (!response.ok)
+        return rejectWithValue(`Máy chủ trả HTTP ${response.status}.`);
       const data = await response.json();
       if (!Array.isArray(data.products)) {
         return rejectWithValue("Dữ liệu sản phẩm không hợp lệ.");
@@ -52,7 +55,9 @@ export const fetchProducts = createAsyncThunk(
       return data.products;
     } catch (error) {
       if (signal.aborted) throw error;
-      return rejectWithValue("Không tải được sản phẩm. Kiểm tra mạng và thử lại.");
+      return rejectWithValue(
+        "Không tải được sản phẩm. Kiểm tra mạng và thử lại.",
+      );
     }
   },
   {
@@ -62,7 +67,12 @@ export const fetchProducts = createAsyncThunk(
 
 const productsSlice = createSlice({
   name: "products",
-  initialState: { items: [], status: "idle", error: "", currentRequestId: null },
+  initialState: {
+    items: [],
+    status: "idle",
+    error: "",
+    currentRequestId: null,
+  },
   reducers: {},
   extraReducers: (builder) => {
     builder
@@ -80,7 +90,9 @@ const productsSlice = createSlice({
       .addCase(fetchProducts.rejected, (state, action) => {
         if (state.currentRequestId !== action.meta.requestId) return;
         state.status = action.meta.aborted ? "idle" : "failed";
-        state.error = action.meta.aborted ? "" : (action.payload || "Request thất bại.");
+        state.error = action.meta.aborted
+          ? ""
+          : action.payload || "Request thất bại.";
         state.currentRequestId = null;
       });
   },
@@ -128,13 +140,22 @@ export default function App() {
   return (
     <main>
       <h1>Sản phẩm từ Redux thunk</h1>
-      <button disabled={status === "loading"} onClick={() => dispatch(fetchProducts())}>
+      <button
+        disabled={status === "loading"}
+        onClick={() => dispatch(fetchProducts())}
+      >
         {status === "loading" ? "Đang tải..." : "Tải lại"}
       </button>
       {status === "loading" && <p role="status">Đang tải sản phẩm...</p>}
       {status === "failed" && <p role="alert">{error}</p>}
       {status === "succeeded" && items.length === 0 && <p>Chưa có sản phẩm.</p>}
-      <ul>{items.map((p) => <li key={p.id}>{p.title} - {p.price} USD</li>)}</ul>
+      <ul>
+        {items.map((p) => (
+          <li key={p.id}>
+            {p.title} - {p.price} USD
+          </li>
+        ))}
+      </ul>
     </main>
   );
 }
@@ -208,21 +229,34 @@ function ProductCount() {
 }
 
 export default function App() {
-  const { data, isLoading, isFetching, isError, refetch } = useGetProductsQuery(8);
+  const { data, isLoading, isFetching, isError, refetch } =
+    useGetProductsQuery(8);
   return (
     <main>
       <h1>Sản phẩm từ RTK Query</h1>
-      <button disabled={isFetching} onClick={() => refetch()}>Tải lại</button>
+      <button disabled={isFetching} onClick={() => refetch()}>
+        Tải lại
+      </button>
       {isLoading && <p role="status">Đang tải lần đầu...</p>}
-      {!isLoading && isFetching && <p role="status">Đang cập nhật dữ liệu...</p>}
+      {!isLoading && isFetching && (
+        <p role="status">Đang cập nhật dữ liệu...</p>
+      )}
       {isError && <p role="alert">Không tải được sản phẩm. Hãy thử lại.</p>}
       {!isLoading && !isError && data && !Array.isArray(data.products) && (
         <p role="alert">Dữ liệu sản phẩm không hợp lệ.</p>
       )}
-      {Array.isArray(data?.products) && (
-        data.products.length === 0 ? <p>Chưa có sản phẩm.</p> :
-        <ul>{data.products.map((p) => <li key={p.id}>{p.title} - {p.price} USD</li>)}</ul>
-      )}
+      {Array.isArray(data?.products) &&
+        (data.products.length === 0 ? (
+          <p>Chưa có sản phẩm.</p>
+        ) : (
+          <ul>
+            {data.products.map((p) => (
+              <li key={p.id}>
+                {p.title} - {p.price} USD
+              </li>
+            ))}
+          </ul>
+        ))}
       <ProductCount />
     </main>
   );
@@ -258,13 +292,13 @@ export const useAppSelector = useSelector.withTypes<RootState>();
 
 ## 5. Lỗi thường gặp
 
-| Hiện tượng | Cách kiểm tra |
-| --- | --- |
-| Không thấy dữ liệu sau fulfilled | Khóa reducer và selector cần khớp; kiểm tra shape API. |
-| Rejected không vào catch ở component | Dùng `.unwrap()` nếu muốn xử lý theo Promise ném lỗi. |
-| RTK Query cảnh báo middleware | Đăng ký cả API reducer và API middleware. |
-| Tạo hai nguồn dữ liệu cùng endpoint | Chọn cache RTK Query hoặc luồng thunk cho nhu cầu đó, tránh chép lặp vô cớ. |
-| TypeScript báo lỗi trong file JS | Phần typed hooks chỉ dành cho project TS. |
+| Hiện tượng                           | Cách kiểm tra                                                               |
+| ------------------------------------ | --------------------------------------------------------------------------- |
+| Không thấy dữ liệu sau fulfilled     | Khóa reducer và selector cần khớp; kiểm tra shape API.                      |
+| Rejected không vào catch ở component | Dùng `.unwrap()` nếu muốn xử lý theo Promise ném lỗi.                       |
+| RTK Query cảnh báo middleware        | Đăng ký cả API reducer và API middleware.                                   |
+| Tạo hai nguồn dữ liệu cùng endpoint  | Chọn cache RTK Query hoặc luồng thunk cho nhu cầu đó, tránh chép lặp vô cớ. |
+| TypeScript báo lỗi trong file JS     | Phần typed hooks chỉ dành cho project TS.                                   |
 
 ## 6. Ôn tập và bài tập thêm
 
